@@ -36,7 +36,7 @@ public class BaseAuthenticationTests {
 	public void getScopesAsStringTest() {
 		BaseAuthentication baseAuthentication = new BaseAuthentication(SCOPES, CLIENT_ID, BaseAuthentication.GetAuthority(NATIONAL_CLOUD, TENANT), REDIRECT_URL, NATIONAL_CLOUD, TENANT, SECRET);
 		String actual = baseAuthentication.getScopesAsString();
-		String expected = "user.read openid profile offline_access";
+		String expected = "user.read openid profile offline_access ";
 		assertEquals(expected, actual);
 	}
 	
