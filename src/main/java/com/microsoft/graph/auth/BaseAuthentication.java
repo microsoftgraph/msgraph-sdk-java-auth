@@ -56,11 +56,12 @@ public class BaseAuthentication {
 	}
 
 	protected String getScopesAsString() {
-		String scopeString = new String();
+		StringBuilder scopeString = new StringBuilder();
 		for(String s : this.Scopes) {
-			scopeString+=(s+" ");
+			scopeString.append(s);
+			scopeString.append(" ");
 		}
-		return scopeString;
+		return scopeString.toString();
 	}
 
 	protected String getAccessTokenSilent()
@@ -81,10 +82,10 @@ public class BaseAuthentication {
 					token.setClientSecret(this.ClientSecret);
 				}
 
-				OAuthClientRequest r = token.buildBodyMessage();
+				OAuthClientRequest request = token.buildBodyMessage();
 				OAuthClient oAuthClient = new OAuthClient(new URLConnectionClient());
 				this.startTime = System.currentTimeMillis(); 
-				this.response = oAuthClient.accessToken(r);
+				this.response = oAuthClient.accessToken(request);
 				return response.getAccessToken();
 			}
 		} catch (Exception e) {

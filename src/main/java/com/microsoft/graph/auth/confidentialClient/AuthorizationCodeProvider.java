@@ -24,7 +24,7 @@ public class AuthorizationCodeProvider extends BaseAuthentication implements IAu
 			String authorizationCode,
 			String redirectUri,
 			String clientSecret){
-		this(clientId, scopes, authorizationCode, redirectUri, null,null, clientSecret);
+		this(clientId, scopes, authorizationCode, redirectUri, null, null, clientSecret);
 	}
 
 	public AuthorizationCodeProvider(
@@ -36,13 +36,13 @@ public class AuthorizationCodeProvider extends BaseAuthentication implements IAu
 			String tenant,
 			String clientSecret){
 		
-		super(scopes,
+		super(	scopes,
 				clientId,
-				GetAuthority(nationalCloud==null?NationalCloud.Global:nationalCloud, tenant == null ? AuthConstants.Tenants.Common : tenant),
+				GetAuthority(nationalCloud == null? NationalCloud.Global: nationalCloud, tenant == null? AuthConstants.Tenants.Common: tenant),
 				redirectUri,
-				nationalCloud==null?NationalCloud.Global:nationalCloud,
-				tenant == null ? AuthConstants.Tenants.Common : tenant,
-						clientSecret);
+				nationalCloud == null? NationalCloud.Global: nationalCloud,
+				tenant == null? AuthConstants.Tenants.Common: tenant,
+				clientSecret);
 		
 		getAccessToken(authorizationCode);
 	}
@@ -54,8 +54,8 @@ public class AuthorizationCodeProvider extends BaseAuthentication implements IAu
 
 	private void getAccessToken(String authorizationCode) {
 		try {
-			OAuthClientRequest req = getTokenRequestMessage(authorizationCode);
-			getAccessTokenNewRequest(req);
+			OAuthClientRequest request = getTokenRequestMessage(authorizationCode);
+			getAccessTokenNewRequest(request);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -76,9 +76,9 @@ public class AuthorizationCodeProvider extends BaseAuthentication implements IAu
 		return token.buildBodyMessage();
 	}
 	
-	protected void getAccessTokenNewRequest(OAuthClientRequest req) throws OAuthSystemException, OAuthProblemException {
+	protected void getAccessTokenNewRequest(OAuthClientRequest request) throws OAuthSystemException, OAuthProblemException {
 		OAuthClient oAuthClient = new OAuthClient(new URLConnectionClient());
 		super.startTime = System.currentTimeMillis(); 
-		super.response = oAuthClient.accessToken(req);
+		super.response = oAuthClient.accessToken(request);
 	}
 }

@@ -37,11 +37,11 @@ public class UsernamePasswordProvider extends BaseAuthentication implements IAut
 			String tenant) {
 		super(  scopes, 
 				clientId, 
-				GetAuthority(nationalCloud == null?NationalCloud.Global:nationalCloud, tenant == null?AuthConstants.Tenants.Organizations:tenant), 
+				GetAuthority(nationalCloud == null? NationalCloud.Global: nationalCloud, tenant == null? AuthConstants.Tenants.Organizations: tenant), 
 				null, 
-				(nationalCloud == null) ? NationalCloud.Global : nationalCloud, 
-						tenant,
-						null);
+				nationalCloud == null? NationalCloud.Global: nationalCloud, 
+				tenant,
+				null);
 		this.Username = username;
 		this.Password = password;
 	}
@@ -51,8 +51,8 @@ public class UsernamePasswordProvider extends BaseAuthentication implements IAut
 		String accessToken = getAccessTokenSilent();
 		if(accessToken == null) {
 			try {
-				OAuthClientRequest req = getTokenRequestMessage();
-				accessToken = getAccessTokenNewRequest(req);
+				OAuthClientRequest request = getTokenRequestMessage();
+				accessToken = getAccessTokenNewRequest(request);
 			}catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -69,14 +69,14 @@ public class UsernamePasswordProvider extends BaseAuthentication implements IAut
 				.setPassword(this.Password)
 				.setGrantType(GrantType.PASSWORD)
 				.setScope(getScopesAsString());
-		OAuthClientRequest req = token.buildBodyMessage();
-		return req;
+		OAuthClientRequest request = token.buildBodyMessage();
+		return request;
 	}
 	
-	protected String getAccessTokenNewRequest(OAuthClientRequest req) throws OAuthSystemException, OAuthProblemException {
+	protected String getAccessTokenNewRequest(OAuthClientRequest request) throws OAuthSystemException, OAuthProblemException {
 		OAuthClient oAuthClient = new OAuthClient(new URLConnectionClient());
 		super.startTime = System.currentTimeMillis();
-		super.response = oAuthClient.accessToken(req);
+		super.response = oAuthClient.accessToken(request);
 		return super.response.getAccessToken();
 	}
 }
