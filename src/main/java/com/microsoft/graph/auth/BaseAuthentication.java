@@ -14,15 +14,15 @@ import com.microsoft.graph.auth.enums.NationalCloud;
 
 public class BaseAuthentication {
 
-	protected List<String> Scopes;
-	protected String ClientId;
-	protected String authority;
-	protected String ClientSecret;
-	protected long startTime;
-	protected NationalCloud nationalCloud;
-	protected String tenant;
-	protected String redirectUri = "https://localhost:8080";
-	protected OAuthJSONAccessTokenResponse response;
+	private List<String> scopes;
+	private String clientId;
+	private String authority;
+	private String clientSecret;
+	private long startTime;
+	private NationalCloud nationalCloud;
+	private String tenant;
+	private String redirectUri = "https://localhost:8080";
+	private OAuthJSONAccessTokenResponse response;
 
 	public BaseAuthentication(
 			List<String> scopes,
@@ -31,15 +31,15 @@ public class BaseAuthentication {
 			String redirectUri,
 			NationalCloud nationalCloud,
 			String tenant,
-			String ClientSecret)
+			String clientSecret)
 	{
-		this.Scopes = scopes;
-		this.ClientId = clientId;
+		this.scopes = scopes;
+		this.clientId = clientId;
 		this.authority = authority;
 		this.redirectUri = redirectUri;
 		this.nationalCloud = nationalCloud;
 		this.tenant = tenant;
-		this.ClientSecret = ClientSecret;
+		this.clientSecret = clientSecret;
 	}
 
 	protected static HashMap<String, String> CloudList = new HashMap<String, String>()
@@ -57,7 +57,7 @@ public class BaseAuthentication {
 
 	protected String getScopesAsString() {
 		StringBuilder scopeString = new StringBuilder();
-		for(String s : this.Scopes) {
+		for(String s : this.scopes) {
 			scopeString.append(s);
 			scopeString.append(" ");
 		}
@@ -71,15 +71,15 @@ public class BaseAuthentication {
 		try {
 			if(durationPassed >= response.getExpiresIn()*1000) {
 				TokenRequestBuilder token = OAuthClientRequest.
-						tokenLocation(this.authority + "/oauth2/v2.0/token")
-						.setClientId(this.ClientId)
+						tokenLocation(this.authority + AuthConstants.TOKEN_ENDPOINT)
+						.setClientId(this.clientId)
 						.setScope(getScopesAsString())
 						.setRefreshToken(response.getRefreshToken())
 						.setGrantType(GrantType.REFRESH_TOKEN)
 						.setScope(getScopesAsString())
 						.setRedirectURI(redirectUri);
-				if(this.ClientSecret != null) {
-					token.setClientSecret(this.ClientSecret);
+				if(this.clientSecret != null) {
+					token.setClientSecret(this.clientSecret);
 				}
 
 				OAuthClientRequest request = token.buildBodyMessage();
@@ -88,10 +88,51 @@ public class BaseAuthentication {
 				this.response = oAuthClient.accessToken(request);
 				return response.getAccessToken();
 			}
+			else return response.getAccessToken();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return null;
+	}
+	
+	protected String getAuthority() {
+		return this.authority;
+	}
+	
+	protected String getClientId() {
+		return this.clientId;
+	}
+	
+	protected String getClientSecret() {
+		return this.clientSecret;
+	}
+	
+	protected String getRedirectUri() {
+		return this.redirectUri;
+	}
+	
+	protected void setResponse(OAuthJSONAccessTokenResponse response) {
+		this.response = response;
+	}
+	
+	protected OAuthJSONAccessTokenResponse getResponse() {
+		return this.response;
+	}
+	
+	protected long getStartTime() {
+		return this.startTime;
+	}
+	
+	protected void setStartTime(long startTime) {
+		this.startTime = startTime;
+	}
+	
+	protected NationalCloud getNationalCloud() {
+		return this.nationalCloud;
+	}
+	
+	protected String getTenant() {
+		return this.tenant;
 	}
 
 }
