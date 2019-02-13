@@ -2,6 +2,7 @@ package com.microsoft.graph.auth.publicClient;
 
 import java.util.List;
 
+import org.apache.http.HttpRequest;
 import org.apache.oltu.oauth2.client.OAuthClient;
 import org.apache.oltu.oauth2.client.URLConnectionClient;
 import org.apache.oltu.oauth2.client.request.OAuthClientRequest;
@@ -25,7 +26,7 @@ public class UsernamePasswordProvider extends BaseAuthentication implements IAut
 			List<String> scopes,
 			String username,
 			String password){
-		this(clientId, scopes, username, password, NationalCloud.Global, AuthConstants.Tenants.Organizations);
+		this(clientId, scopes, username, password, NationalCloud.Global, AuthConstants.Tenants.Organizations, null);
 	}
 
 	public UsernamePasswordProvider(
@@ -34,49 +35,53 @@ public class UsernamePasswordProvider extends BaseAuthentication implements IAut
 			String username,
 			String password,
 			NationalCloud nationalCloud,
-			String tenant) {
+			String tenant,
+			String clientSecret) {
 		super(  scopes, 
 				clientId, 
 				GetAuthority(nationalCloud == null? NationalCloud.Global: nationalCloud, tenant == null? AuthConstants.Tenants.Organizations: tenant), 
 				null, 
 				nationalCloud == null? NationalCloud.Global: nationalCloud, 
 				tenant,
-				null);
+				clientSecret);
 		this.Username = username;
 		this.Password = password;
 	}
 
 	@Override
-	public String getAccessToken(){
+	public void authenticateRequest(HttpRequest request) {
 		String accessToken = getAccessTokenSilent();
 		if(accessToken == null) {
 			try {
-				OAuthClientRequest request = getTokenRequestMessage();
-				accessToken = getAccessTokenNewRequest(request);
+				OAuthClientRequest authRequest = getTokenRequestMessage();
+				accessToken = getAccessTokenNewRequest(authRequest);
 			}catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
-		return accessToken;
+		request.addHeader("Authorization", AuthConstants.BEARER + accessToken);
 	}
 	
-	protected OAuthClientRequest getTokenRequestMessage() throws OAuthSystemException {
-		String tokenUrl = this.authority + "/oauth2/v2.0/token";
+	OAuthClientRequest getTokenRequestMessage() throws OAuthSystemException {
+		String tokenUrl = getAuthority() + AuthConstants.TOKEN_ENDPOINT;
 		TokenRequestBuilder token = OAuthClientRequest.
 				tokenLocation(tokenUrl)
-				.setClientId(this.ClientId)
+				.setClientId(getClientId())
 				.setUsername(this.Username)
 				.setPassword(this.Password)
 				.setGrantType(GrantType.PASSWORD)
 				.setScope(getScopesAsString());
+		if(getClientSecret() != null) {
+			token.setClientSecret(getClientSecret());
+		}
 		OAuthClientRequest request = token.buildBodyMessage();
 		return request;
 	}
 	
-	protected String getAccessTokenNewRequest(OAuthClientRequest request) throws OAuthSystemException, OAuthProblemException {
+	String getAccessTokenNewRequest(OAuthClientRequest request) throws OAuthSystemException, OAuthProblemException {
 		OAuthClient oAuthClient = new OAuthClient(new URLConnectionClient());
-		super.startTime = System.currentTimeMillis();
-		super.response = oAuthClient.accessToken(request);
-		return super.response.getAccessToken();
+		setStartTime(System.currentTimeMillis());
+		setResponse(oAuthClient.accessToken(request)); 
+		return getResponse().getAccessToken();
 	}
 }

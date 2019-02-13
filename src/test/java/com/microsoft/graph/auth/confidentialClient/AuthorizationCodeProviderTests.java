@@ -6,6 +6,7 @@ import static org.junit.Assert.assertNotNull;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.http.client.methods.HttpGet;
 import org.apache.oltu.oauth2.client.request.OAuthClientRequest;
 import org.apache.oltu.oauth2.common.exception.OAuthProblemException;
 import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
@@ -54,22 +55,28 @@ public class AuthorizationCodeProviderTests {
 	public void authenticateRequestTest() throws OAuthSystemException, OAuthProblemException {
 		AuthorizationCodeProvider authorizationCodeProvider = Mockito.mock(AuthorizationCodeProvider.class);
 		Mockito.when(authorizationCodeProvider.getTokenRequestMessage(AUTHORIZATION_CODE)).thenReturn(Mockito.mock(OAuthClientRequest.class));
-		String actual = authorizationCodeProvider.getAccessToken();
-		assertEquals("test_accessToken"	, actual);
+		HttpGet httpget = new HttpGet("https://graph.microsoft.com/v1.0/me/");
+		authorizationCodeProvider.authenticateRequest(httpget);
+		String actual = httpget.getFirstHeader("Authorization").getValue();
+		assertEquals("Bearer test_accessToken"	, actual);
 	}
 	
 	@Test
 	public void getAccessTokenNewRequestTest() throws OAuthSystemException, OAuthProblemException {
 		AuthorizationCodeProvider authorizationCodeProvider = new AuthorizationCodeProvider(CLIENT_ID, SCOPES, AUTHORIZATION_CODE, REDIRECT_URL, SECRET);
-		String actualAccessToken = authorizationCodeProvider.getAccessToken();
-		assertNotNull(actualAccessToken);
+		HttpGet httpget = new HttpGet("https://graph.microsoft.com/v1.0/me/");
+		authorizationCodeProvider.authenticateRequest(httpget);
+		String actualTokenparameter = httpget.getFirstHeader("Authorization").getValue();
+		assertNotNull(actualTokenparameter);
 	}
 	
 	@Test
 	public void getAccessTokenNewRequestWithNationalCloudTenantTest() throws OAuthSystemException, OAuthProblemException {
 		AuthorizationCodeProvider authorizationCodeProvider = new AuthorizationCodeProvider(CLIENT_ID, SCOPES, AUTHORIZATION_CODE, REDIRECT_URL, NATIONAL_CLOUD, TENANT, SECRET);
-		String actualAccessToken = authorizationCodeProvider.getAccessToken();
-		assertNotNull(actualAccessToken);
+		HttpGet httpget = new HttpGet("https://graph.microsoft.com/v1.0/me/");
+		authorizationCodeProvider.authenticateRequest(httpget);
+		String actualTokenparameter = httpget.getFirstHeader("Authorization").getValue();
+		assertNotNull(actualTokenparameter);
 	}
 
 }

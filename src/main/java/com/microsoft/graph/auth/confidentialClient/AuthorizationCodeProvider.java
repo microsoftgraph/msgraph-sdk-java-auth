@@ -2,6 +2,7 @@ package com.microsoft.graph.auth.confidentialClient;
 
 import java.util.List;
 
+import org.apache.http.HttpRequest;
 import org.apache.oltu.oauth2.client.OAuthClient;
 import org.apache.oltu.oauth2.client.URLConnectionClient;
 import org.apache.oltu.oauth2.client.request.OAuthClientRequest;
@@ -18,6 +19,15 @@ import com.microsoft.graph.httpcore.IAuthenticationProvider;
 
 public class AuthorizationCodeProvider extends BaseAuthentication implements IAuthenticationProvider{
 
+	/*
+	 * Authorization code provider initialization
+	 * 
+	 * @param clientId Client ID of application
+	 * @param scopes Scopes of application to access protected resources
+	 * @param authorizationCode Authorization code
+	 * @param redirectUri Redirect uri provided while getting authorization code
+	 * @param clientSecret Client secret of application
+	 */
 	public AuthorizationCodeProvider(
 			String clientId,
 			List<String> scopes,
@@ -27,6 +37,16 @@ public class AuthorizationCodeProvider extends BaseAuthentication implements IAu
 		this(clientId, scopes, authorizationCode, redirectUri, null, null, clientSecret);
 	}
 
+	/*
+	 * Authorization code provider initialization
+	 * 
+	 * @param clientId Client ID of application
+	 * @param scopes Scopes of application to access protected resources
+	 * @param authorizationCode Authorization code
+	 * @param redirectUri Redirect uri provided while getting authorization code
+	 * @param nationalCloud National cloud to access
+	 * @param clientSecret Client secret of application
+	 */
 	public AuthorizationCodeProvider(
 			String clientId,
 			List<String> scopes,
@@ -48,11 +68,12 @@ public class AuthorizationCodeProvider extends BaseAuthentication implements IAu
 	}
 	
 	@Override
-	public String getAccessToken(){
-		return getAccessTokenSilent();
+	public void authenticateRequest(HttpRequest request) {
+		String tokenParameter =  AuthConstants.BEARER + getAccessTokenSilent();
+		request.addHeader(AuthConstants.AUTHORIZATION_HEADER, tokenParameter);
 	}
 
-	private void getAccessToken(String authorizationCode) {
+	void getAccessToken(String authorizationCode) {
 		try {
 			OAuthClientRequest request = getTokenRequestMessage(authorizationCode);
 			getAccessTokenNewRequest(request);
@@ -61,24 +82,24 @@ public class AuthorizationCodeProvider extends BaseAuthentication implements IAu
 		}
 	}
 
-	protected OAuthClientRequest getTokenRequestMessage(String authorizationCode) throws OAuthSystemException {
-		String tokenUrl = super.authority + "/oauth2/v2.0/token";
+	OAuthClientRequest getTokenRequestMessage(String authorizationCode) throws OAuthSystemException {
+		String tokenUrl = getAuthority() + AuthConstants.TOKEN_ENDPOINT;
 		TokenRequestBuilder token = OAuthClientRequest.
 				tokenLocation(tokenUrl)
-				.setClientId(this.ClientId)
+				.setClientId(getClientId())
 				.setCode(authorizationCode)
-				.setRedirectURI(this.redirectUri)
+				.setRedirectURI(getRedirectUri())
 				.setGrantType(GrantType.AUTHORIZATION_CODE)
 				.setScope(getScopesAsString()); 
-		if(this.ClientSecret != null) {
-			token.setClientSecret(this.ClientSecret);
+		if(getClientSecret() != null) {
+			token.setClientSecret(getClientSecret());
 		}
 		return token.buildBodyMessage();
 	}
 	
-	protected void getAccessTokenNewRequest(OAuthClientRequest request) throws OAuthSystemException, OAuthProblemException {
+	void getAccessTokenNewRequest(OAuthClientRequest request) throws OAuthSystemException, OAuthProblemException {
 		OAuthClient oAuthClient = new OAuthClient(new URLConnectionClient());
-		super.startTime = System.currentTimeMillis(); 
-		super.response = oAuthClient.accessToken(request);
+		setStartTime(System.currentTimeMillis());  
+		setResponse(oAuthClient.accessToken(request));
 	}
 }
