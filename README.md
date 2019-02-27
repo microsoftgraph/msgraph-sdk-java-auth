@@ -1,8 +1,5 @@
 # Microsoft Graph Auth SDK for Java
 
-[ ![Download](https://api.bintray.com/packages/microsoftgraph/Maven/microsoft-graph/images/download.svg) ](https://bintray.com/microsoftgraph/Maven/microsoft-graph/_latestVersion)
-
-
 Get started with the Microsoft Graph SDK for Java by integrating the [Microsoft Graph API](https://graph.microsoft.io/en-us/getting-started) into your Java application!
 
 ## 1. Installation
@@ -33,6 +30,25 @@ Add the dependency in `dependencies` in pom.xml
 	<artifactId>microsoft-graph-auth</artifactId>
 	<version>0.1.0-SNAPSHOT</version>
 </dependency>
+```
+
+Add in `project`
+```
+<profiles>
+  <profile>
+     <id>allow-snapshots</id>
+        <activation><activeByDefault>true</activeByDefault></activation>
+     <repositories>
+       <repository>
+         <id>snapshots-repo</id>
+         <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+         <releases><enabled>false</enabled></releases>
+         <snapshots><enabled>true</enabled></snapshots>
+       </repository>
+     </repositories>
+   </profile>
+</profiles>
+
 ```
 
 ## 2. Getting started
