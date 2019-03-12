@@ -2,7 +2,6 @@ package com.microsoft.graph.auth.publicClient;
 
 import java.util.List;
 
-import org.apache.http.HttpRequest;
 import org.apache.oltu.oauth2.client.OAuthClient;
 import org.apache.oltu.oauth2.client.URLConnectionClient;
 import org.apache.oltu.oauth2.client.request.OAuthClientRequest;
@@ -14,9 +13,13 @@ import org.apache.oltu.oauth2.common.message.types.GrantType;
 import com.microsoft.graph.auth.AuthConstants;
 import com.microsoft.graph.auth.BaseAuthentication;
 import com.microsoft.graph.auth.enums.NationalCloud;
-import com.microsoft.graph.httpcore.IAuthenticationProvider;
+import com.microsoft.graph.authentication.IAuthenticationProvider;
+import com.microsoft.graph.http.IHttpRequest;
+import com.microsoft.graph.httpcore.ICoreAuthenticationProvider;
 
-public class UsernamePasswordProvider extends BaseAuthentication implements IAuthenticationProvider{
+import okhttp3.Request;
+
+public class UsernamePasswordProvider extends BaseAuthentication implements IAuthenticationProvider, ICoreAuthenticationProvider{
 
 	private String Username;
 	private String Password;
@@ -40,16 +43,27 @@ public class UsernamePasswordProvider extends BaseAuthentication implements IAut
 		super(  scopes, 
 				clientId, 
 				GetAuthority(nationalCloud == null? NationalCloud.Global: nationalCloud, tenant == null? AuthConstants.Tenants.Organizations: tenant), 
-				null, 
+				null,
 				nationalCloud == null? NationalCloud.Global: nationalCloud, 
-				tenant,
+				tenant == null? AuthConstants.Tenants.Organizations: tenant,
 				clientSecret);
 		this.Username = username;
 		this.Password = password;
 	}
+	
+	@Override
+	public Request authenticateRequest(Request request) {
+		String accessToken = getAccessToken();
+		return request.newBuilder().addHeader("Authorization", AuthConstants.BEARER + accessToken).build();
+	}
 
 	@Override
-	public void authenticateRequest(HttpRequest request) {
+	public void authenticateRequest(IHttpRequest request) {
+		String accessToken = getAccessToken();
+		request.addHeader("Authorization", AuthConstants.BEARER + accessToken);
+	}
+	
+	String getAccessToken() {
 		String accessToken = getAccessTokenSilent();
 		if(accessToken == null) {
 			try {
@@ -59,7 +73,7 @@ public class UsernamePasswordProvider extends BaseAuthentication implements IAut
 				e.printStackTrace();
 			}
 		}
-		request.addHeader("Authorization", AuthConstants.BEARER + accessToken);
+		return accessToken;
 	}
 	
 	OAuthClientRequest getTokenRequestMessage() throws OAuthSystemException {

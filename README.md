@@ -1,12 +1,16 @@
-# Microsoft Graph Auth SDK for Java
+# Microsoft Graph Auth Preview SDK for Java
 
 Get started with the Microsoft Graph SDK for Java by integrating the [Microsoft Graph API](https://graph.microsoft.io/en-us/getting-started) into your Java application!
+
+## Important Note about the Microsoft Graph Auth Preview SDK for Java
+
+During the preview we may make changes to the API, and other mechanisms of this library, which you will be required to take along with bug fixes or feature improvements. This may impact your application. An API change may require you to update your code. When we provide the General Availability release we will require you to update to the General Availability version within six months, as applications written using a preview version of library may no longer work.
 
 ## 1. Installation
 
 ### 1.1 Install via Gradle
 
-Add the repository and a compile dependency for `microsoft-graph` to your project's `build.gradle`:
+Add the repository and a compile dependency for `microsoft-graph-auth` to your project's `build.gradle`:
 
 ```gradle
 repository {
@@ -57,46 +61,42 @@ Add in `project`
 
 Register your application by following the steps at [Register your app with the Azure AD v2.0 endpoint](https://developer.microsoft.com/en-us/graph/docs/concepts/auth_register_app_v2).
 
-### 2.2 Create an IAuthenticationProvider object
+### 2.2 Create an authentication provider object
 
 #### 2.3.1 Confidential client authentication provider
 
 ##### a. Authorization code provider
 ```java
-IAuthenticationProvider authorizationCodeProvider = new AuthorizationCodeProvider(CLIENT_ID, SCOPES_LIST, AUTHORIZATION_CODE, REDIRECT_URL, NATIONAL_CLOUD,	TENANT, SECRET);
+AuthorizationCodeProvider authProvider = new AuthorizationCodeProvider(CLIENT_ID, SCOPES, AUTHORIZATION_CODE, REDIRECT_URL, NATIONAL_CLOUD, TENANT, CLIENT_SECRET);
 ```
 
 ##### b. Client credential provider
 ```java
-IAuthenticationProvider iAuthenticationProvider = new ClientCredentialProvider(CLIENT_ID, SCOPES_LIST, CLIENT_SECRET, tenantGUID, NationalCloud.Global);
+ClientCredentialProvider authProvider = new ClientCredentialProvider(CLIENT_ID, SCOPES, CLIENT_SECRET, TENANT_GUID, NATIONAL_CLOUD);
 ```
 #### 2.3.2 Public client authentication provider
 ##### a. Username password provider
 ```java
-IAuthenticationProvider authenticationProvider = new UsernamePasswordProvider(CLIENT_ID, SCOPES_LIST, USERNAME, PASSWORD, NATIONAL_CLOUD, TENANT, CLIENT_SECRET);
+UsernamePasswordProvider authProvider = new UsernamePasswordProvider(CLIENT_ID, SCOPES, USERNAME, PASSWORD, NATIONAL_CLOUD, TENANT, CLIENT_SECRET);
 ```
 ### 2.3 Get a HttpClient object and make a call
 
+#### Using [msgraph-sdk-java](https://github.com/microsoftgraph/msgraph-sdk-java)
 ```java
-import com.microsoft.graph.httpcore.HttpClients;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.protocol.HttpClientContext;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.util.EntityUtils;
+IGraphServiceClient graphClient = GraphServiceClient
+				.builder()
+				.authenticationProvider(authProvider)
+				.buildClient();
+
+User user = graphClient.me().buildRequest().get();
 ```
 
+#### Using [msgraph-sdk-java-core](https://github.com/microsoftgraph/msgraph-sdk-java-core)
 ```java
-CloseableHttpClient httpclient = HttpClients.createDefault(authenticationProvider);
-HttpGet httpget = new HttpGet("https://graph.microsoft.com/v1.0/me/");
-HttpClientContext localContext = HttpClientContext.create();
-try {
-		HttpResponse response = httpclient.execute(httpget, localContext);
-		String responseBody = EntityUtils.toString(response.getEntity());
-		System.out.println(responseBody); 
-} catch (IOException e) {
-	e.printStackTrace();
-}
+OkHttpClient client = HttpClients.createDefault(authProvider);
+Request request = new Request.Builder().url("https://graph.microsoft.com/v1.0/me").build();
+Response response = client.newCall(request).execute();
+System.out.println(response.body().string());
 ```
 
 ## 3. Make requests against the service
@@ -105,19 +105,25 @@ After you have a GraphServiceClient that is authenticated, you can begin making 
 
 ### 3.1 Get the user's drive
 
-To retrieve the user's drive:
+#### To retrieve the user's drive:
+##### Using [msgraph-sdk-java](https://github.com/microsoftgraph/msgraph-sdk-java)
+```java
+IGraphServiceClient graphClient = 
+		GraphServiceClient
+		.builder()
+		.authenticationProvider(authProvider)
+		.buildClient();
+		
+Drive drive = graphClient.me().drive().buildRequest().get();
+```
+
+##### Using [msgraph-sdk-java-core](https://github.com/microsoftgraph/msgraph-sdk-java-core)
 
 ```java
-CloseableHttpClient httpclient = HttpClients.createDefault(authenticationProvider);
-HttpGet httpget = new HttpGet("https://graph.microsoft.com/v1.0/me/drive");
-HttpClientContext localContext = HttpClientContext.create();
-try {
-		HttpResponse response = httpclient.execute(httpget, localContext);
-		String responseBody = EntityUtils.toString(response.getEntity());
-		System.out.println(responseBody); 
-} catch (IOException e) {
-	e.printStackTrace();
-}
+OkHttpClient httpclient = HttpClients.createDefault(authenticationProvider);
+Request request = new Request.Builder().url("https://graph.microsoft.com/v1.0/me/drive").build();
+Response response = client.newCall(request).execute();
+System.out.println( respose.body().string() );
 ```
 
 ## 4. Sample
@@ -125,7 +131,7 @@ try {
 
 [Steps to get authorizationCode](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-auth-code-flow#request-an-authorization-code)
 ```java
-IAuthenticationProvider authenticationProvider = new AuthorizationCodeProvider("6731de76-14a6-49ae-97bc-6eba6914391e", 
+AuthorizationCodeProvider authProvider = new AuthorizationCodeProvider("6731de76-14a6-49ae-97bc-6eba6914391e", 
 				Arrays.asList("https://graph.microsoft.com/user.read"), 
 				authorizationCode,
 				"http://localhost/myapp/", 
@@ -133,15 +139,20 @@ IAuthenticationProvider authenticationProvider = new AuthorizationCodeProvider("
 				"common", 
 				"JqQX2PNo9bpM0uEihUPzyrh");
 				
-CloseableHttpClient httpclient = HttpClients.createDefault(authenticationProvider);
-HttpGet httpget = new HttpGet("https://graph.microsoft.com/v1.0/me/messages");
-HttpClientContext localContext = HttpClientContext.create();
-try {
-		HttpResponse response = httpclient.execute(httpget, localContext);
-		String responseBody = EntityUtils.toString(response.getEntity());
-		System.out.println(responseBody); 
-} catch (IOException e) {
-	e.printStackTrace();
+IGraphServiceClient graphClient = 
+	GraphServiceClient
+	.builder()
+	.authenticationProvider(authProvider)
+	.buildClient();
+				
+IMessageCollectionPage page = graphClient.me().messages().buildRequest().get();
+while(page != null) {
+	for(Message message : page.getCurrentPage()) {
+		System.out.println(message.subject);
+	}
+	IMessageCollectionRequestBuilder builder = page.getNextPage();
+	if(builder == null)break;
+	page = builder.buildRequest().get();
 }
 ```
 

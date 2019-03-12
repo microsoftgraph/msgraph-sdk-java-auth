@@ -2,7 +2,6 @@ package com.microsoft.graph.auth.confidentialClient;
 
 import java.util.List;
 
-import org.apache.http.HttpRequest;
 import org.apache.oltu.oauth2.client.OAuthClient;
 import org.apache.oltu.oauth2.client.URLConnectionClient;
 import org.apache.oltu.oauth2.client.request.OAuthClientRequest;
@@ -14,10 +13,14 @@ import org.apache.oltu.oauth2.common.message.types.GrantType;
 import com.microsoft.graph.auth.AuthConstants;
 import com.microsoft.graph.auth.BaseAuthentication;
 import com.microsoft.graph.auth.enums.NationalCloud;
-import com.microsoft.graph.httpcore.IAuthenticationProvider;
+import com.microsoft.graph.authentication.IAuthenticationProvider;
+import com.microsoft.graph.http.IHttpRequest;
+import com.microsoft.graph.httpcore.ICoreAuthenticationProvider;
+
+import okhttp3.Request;
 
 
-public class AuthorizationCodeProvider extends BaseAuthentication implements IAuthenticationProvider{
+public class AuthorizationCodeProvider extends BaseAuthentication implements IAuthenticationProvider, ICoreAuthenticationProvider{
 
 	/*
 	 * Authorization code provider initialization
@@ -68,7 +71,13 @@ public class AuthorizationCodeProvider extends BaseAuthentication implements IAu
 	}
 	
 	@Override
-	public void authenticateRequest(HttpRequest request) {
+	public Request authenticateRequest(Request request) {
+		String tokenParameter =  AuthConstants.BEARER + getAccessTokenSilent();
+		return request.newBuilder().addHeader(AuthConstants.AUTHORIZATION_HEADER, tokenParameter).build();
+	}
+	
+	@Override
+	public void authenticateRequest(IHttpRequest request) {
 		String tokenParameter =  AuthConstants.BEARER + getAccessTokenSilent();
 		request.addHeader(AuthConstants.AUTHORIZATION_HEADER, tokenParameter);
 	}
