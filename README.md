@@ -132,7 +132,7 @@ System.out.println( respose.body().string() );
 [Steps to get authorizationCode](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-auth-code-flow#request-an-authorization-code)
 ```java
 AuthorizationCodeProvider authProvider = new AuthorizationCodeProvider("6731de76-14a6-49ae-97bc-6eba6914391e", 
-				Arrays.asList("https://graph.microsoft.com/user.read"), 
+				Arrays.asList("https://graph.microsoft.com/user.read","https://graph.microsoft.com/Mail.ReadWrite"), 
 				authorizationCode,
 				"http://localhost/myapp/", 
 				NationalCloud.Global, 
