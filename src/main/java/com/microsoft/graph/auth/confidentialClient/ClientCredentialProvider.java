@@ -2,7 +2,6 @@ package com.microsoft.graph.auth.confidentialClient;
 
 import java.util.List;
 
-import org.apache.http.HttpRequest;
 import org.apache.oltu.oauth2.client.OAuthClient;
 import org.apache.oltu.oauth2.client.URLConnectionClient;
 import org.apache.oltu.oauth2.client.request.OAuthClientRequest;
@@ -14,9 +13,13 @@ import org.apache.oltu.oauth2.common.message.types.GrantType;
 import com.microsoft.graph.auth.AuthConstants;
 import com.microsoft.graph.auth.BaseAuthentication;
 import com.microsoft.graph.auth.enums.NationalCloud;
-import com.microsoft.graph.httpcore.IAuthenticationProvider;
+import com.microsoft.graph.authentication.IAuthenticationProvider;
+import com.microsoft.graph.http.IHttpRequest;
+import com.microsoft.graph.httpcore.ICoreAuthenticationProvider;
 
-public class ClientCredentialProvider extends BaseAuthentication implements IAuthenticationProvider{
+import okhttp3.Request;
+
+public class ClientCredentialProvider extends BaseAuthentication implements IAuthenticationProvider, ICoreAuthenticationProvider{
 	
 	/*
 	 * Client credential provider instance using client secret
@@ -42,9 +45,20 @@ public class ClientCredentialProvider extends BaseAuthentication implements IAut
 	}
 	
 	@Override
-	public void authenticateRequest(HttpRequest request) {
+	public void authenticateRequest(IHttpRequest request) {
+		String accessToken = getAcccessToken();
+		request.addHeader(AuthConstants.AUTHORIZATION_HEADER, AuthConstants.BEARER + accessToken);
+	}
+	
+	@Override
+	public Request authenticateRequest(Request request) {
+		String accessToken = getAcccessToken();
+		return request.newBuilder().addHeader(AuthConstants.AUTHORIZATION_HEADER, AuthConstants.BEARER + accessToken).build();
+	}
+	
+	String getAcccessToken() {
+		String accessToken = "";
 		try {
-			String accessToken = null;
 			long duration = System.currentTimeMillis() - getStartTime();
 			if(getResponse()!=null && duration>0 && duration< getResponse().getExpiresIn()*1000) {
 				accessToken = getResponse().getAccessToken();
@@ -52,10 +66,10 @@ public class ClientCredentialProvider extends BaseAuthentication implements IAut
 				OAuthClientRequest authRequest = getTokenRequestMessage();
 				accessToken = getAccessTokenNewRequest(authRequest);
 			}
-			request.addHeader(AuthConstants.AUTHORIZATION_HEADER, AuthConstants.BEARER + accessToken);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		return accessToken;
 	}
 	
 	/*
