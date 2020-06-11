@@ -22,7 +22,7 @@ repository {
 
 dependency {
     // Include the sdk as a dependency
-    compile('com.microsoft.graph:microsoft-graph-auth:0.1.0-SNAPSHOT')
+    compile('com.microsoft.graph:microsoft-graph-auth:0.2.0-SNAPSHOT')
 }
 ```
 
@@ -32,7 +32,7 @@ Add the dependency in `dependencies` in pom.xml
 <dependency>
 	<groupId>com.microsoft.graph</groupId>
 	<artifactId>microsoft-graph-auth</artifactId>
-	<version>0.1.0-SNAPSHOT</version>
+	<version>0.2.0-SNAPSHOT</version>
 </dependency>
 ```
 
