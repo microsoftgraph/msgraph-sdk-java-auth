@@ -7,9 +7,11 @@ apply plugin: 'signing'
 
 repositories {
     jcenter()
-    jcenter{
-    	url 'http://oss.jfrog.org/artifactory/oss-snapshot-local'
-    }
+    //Commented this out, neither the SDK nor the Core libraries specify this
+    //If this builds successfully we may want to delete this entirely 
+    //jcenter{
+    //	url 'http://oss.jfrog.org/artifactory/oss-snapshot-local'
+    //}
     mavenCentral()
 }
 
@@ -59,10 +61,10 @@ publishing {
             artifact sourceJar
             pom.withXml {
                 def root = asNode()
-                root.appendNode('name', 'Microsoft Graph SDK for Java')
-                root.appendNode('url', 'https://github.com/microsoftgraph/msgraph-sdk-java')
+                root.appendNode('name', 'Microsoft Graph Auth SDK for Java')
+                root.appendNode('url', 'https://github.com/microsoftgraph/msgraph-sdk-java-auth')
                 root.children().last() + pomConfig
-                def pomFile = file("${project.buildDir}/libs/microsoft-graph.pom")
+                def pomFile = file("${project.buildDir}/libs/microsoft-graph-auth.pom")
                 writeTo(pomFile)
             }
 
