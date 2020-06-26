@@ -7,11 +7,9 @@ apply plugin: 'signing'
 
 repositories {
     jcenter()
-    //Commented this out, neither the SDK nor the Core libraries specify this
-    //If this builds successfully we may want to delete this entirely 
-    //jcenter{
-    //	url 'http://oss.jfrog.org/artifactory/oss-snapshot-local'
-    //}
+    jcenter{
+    	url 'http://oss.jfrog.org/artifactory/oss-snapshot-local'
+    }
     mavenCentral()
 }
 
