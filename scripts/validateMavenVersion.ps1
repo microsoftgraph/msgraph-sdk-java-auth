@@ -9,10 +9,11 @@
     Retrieves the local, Maven, and Bintray versions of the Java-Auth build.
     Checks that the Maven and Bintray versions are aligned, trigger warning if not.
     Checks that the current local version is greater than those currently deployed. 
-#>
-
 .Parameter packageName
+    Name of the package to search for in the Maven and Jcenter Repositories
 .Parameter propertiesPath
+    Local path to the Gradle.Properties file
+#>
 
 Param(
     [parameter(Mandatory = $true)]
