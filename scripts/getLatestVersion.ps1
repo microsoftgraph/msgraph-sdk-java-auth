@@ -8,7 +8,7 @@
     Retrieves the latest version specified in the Gradle.Properties file
     Uses the retrieved values to update the enviornment variable VERSION_STRING
 .Parameter propertiesPath
-    the path leading to the gradle.properties file
+    The local path to the gradle.properties file
 #>
 
 Param(
