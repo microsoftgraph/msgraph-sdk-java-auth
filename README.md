@@ -22,22 +22,22 @@ repository {
 
 dependency {
     // Include the sdk as a dependency
-    compile('com.microsoft.graph:microsoft-graph-auth:0.2.0-SNAPSHOT')
+    compile('com.microsoft.graph:microsoft-graph-auth:0.3.0-SNAPSHOT')
 }
 ```
 
 ### 1.2 Install via Maven
 Add the dependency in `dependencies` in pom.xml
-```dependency
+```xml
 <dependency>
 	<groupId>com.microsoft.graph</groupId>
 	<artifactId>microsoft-graph-auth</artifactId>
-	<version>0.2.0-SNAPSHOT</version>
+	<version>0.3.0-SNAPSHOT</version>
 </dependency>
 ```
 
 Add in `project`
-```
+```xml
 <profiles>
   <profile>
      <id>allow-snapshots</id>
