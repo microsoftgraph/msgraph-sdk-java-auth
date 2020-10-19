@@ -17,11 +17,9 @@ pr:
             - CONTRIBUTING.md
             - LICENSE
             - THIRD PARTY NOTICES
-            - gradle.properties
             - gradlew
             - gradlew.bat
             - readme.md
-            - settings.gradle
             - scripts/*
 
 trigger: none
