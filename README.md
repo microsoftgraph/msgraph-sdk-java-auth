@@ -1,6 +1,6 @@
 # Microsoft Graph Auth Preview SDK for Java
 
-Get started with the Microsoft Graph SDK for Java by integrating the [Microsoft Graph API](https://graph.microsoft.io/en-us/getting-started) into your Java application!
+Get started with the Microsoft Graph SDK for Java by integrating the [Microsoft Graph API](https://developer.microsoft.com/en-us/graph/get-started/java) into your Java application!
 
 ## Important Note about the Microsoft Graph Auth Preview SDK for Java
 
