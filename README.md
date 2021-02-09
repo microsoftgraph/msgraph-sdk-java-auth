@@ -14,10 +14,7 @@ Add the repository and a compile dependency for `microsoft-graph-auth` to your p
 
 ```gradle
 repository {
-    jcenter()
-	jcenter{
-        url 'http://oss.jfrog.org/artifactory/oss-snapshot-local'
-	}
+    maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
 }
 
 dependency {

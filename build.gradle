@@ -6,20 +6,17 @@ apply plugin: 'maven-publish'
 apply plugin: 'signing'
 
 repositories {
-    jcenter()
-    jcenter{
-    	url 'http://oss.jfrog.org/artifactory/oss-snapshot-local'
-    }
+    maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
     mavenCentral()
 }
 
 dependencies {
     // Use JUnit and mockito test framework
     testImplementation 'junit:junit:4.13'
-    testImplementation 'org.mockito:mockito-core:2.28.0'
+    testImplementation 'org.mockito:mockito-core:3.7.7'
     implementation 'org.apache.oltu.oauth2:org.apache.oltu.oauth2.client:1.0.2'
-    implementation 'com.microsoft.graph:microsoft-graph-core:[1.0.0, 2.0.0)'
-    implementation 'com.microsoft.graph:microsoft-graph:[2.0.0, 3.0.0)'
+    implementation 'com.microsoft.graph:microsoft-graph-core:1.+'
+    implementation 'com.microsoft.graph:microsoft-graph:2.+'
 }
 
 def pomConfig = {
@@ -32,11 +29,19 @@ def pomConfig = {
     }
 }
 
+task sourceJar(type: Jar) {
+  classifier = 'sources'
+  from sourceSets.main.allJava
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
 //Publishing tasks-
 //Maven Central Snapshot: publishSnapshotPublicationToMavenRepository
 //Maven Central Release: publishMavenCentralReleasePublicationToMaven2Repository
-//Bintray Snapshot: publishSnapshotPublicationToMaven3Repository
-//Bintray Release: uploadArchives
 
 publishing {
 
@@ -102,18 +107,6 @@ publishing {
         	artifact(javadocJar) {
         		classifier = 'javadoc'
         	}
-        	project.tasks.signArchives.signatureFiles.each {
-        		artifact(it) {
-        			def matcher = it.file =~ /-(sources|javadoc)\.jar\.asc$/
-        			if(matcher.find()){
-        				classifier = matcher.group(1)
-        			}
-        			else{
-        				classifier = null
-        			}
-        			extension = 'jar.asc'
-				}
-			}
 		}
     }
 	repositories {
@@ -142,26 +135,8 @@ publishing {
     			}
             }
         }
-        
-        maven {
-            url = project.property('mavenBintraySnapshotUrl')
-            
-            credentials {
-    			if (project.rootProject.file('local.properties').exists()) {
-        			Properties properties = new Properties()
-        			properties.load(project.rootProject.file('local.properties').newDataInputStream())
-        			username = (properties.containsKey('bintray.user')) ? properties.getProperty('bintray.user').toLowerCase() : "BINTRAY_USERNAME"
-        			password = properties.getProperty('bintray.apikey')
-    			}
-            }
-		}
     }
 
-}
-
-task sourceJar(type: Jar) {
-  classifier = 'sources'
-  from sourceSets.main.allJava
 }
 
 compileJava {
@@ -175,46 +150,6 @@ def getVersionCode() {
 
 def getVersionName() {
     return "${mavenMajorVersion}.${mavenMinorVersion}.${mavenPatchVersion}${mavenArtifactSuffix}"
-}
-
-uploadArchives {
-
-    def bintrayUsername = ""
-
-    def bintrayApikey = ""
-
-    if (project.rootProject.file('local.properties').exists()) {
-        Properties properties = new Properties()
-        properties.load(project.rootProject.file('local.properties').newDataInputStream())
-        bintrayUsername = properties.getProperty('bintray.user')
-        bintrayApikey = properties.getProperty('bintray.apikey')
-    }
-
-    configuration = configurations.archives
-
-    repositories.mavenDeployer {
-
-        pom {
-           setGroupId project.mavenGroupId
-           setArtifactId project.mavenArtifactId
-           setVersion getVersionName()
-        }
-
-        repository (url: project.mavenRepoUrl) {
-        	url = url + "/" + getVersionName()
-
-            authentication(
-                 // put these values in local file ~/.gradle/gradle.properties
-                 userName: project.hasProperty("bintrayUsername") ? project.bintrayUsername : bintrayUsername,
-                 password: project.hasProperty("bintrayApikey") ? project.bintrayApikey : bintrayApikey
-            )
-        }
-    }
-}
-
-task javadocJar(type: Jar, dependsOn: javadoc) {
-    classifier = 'javadoc'
-    from javadoc.destinationDir
 }
 
 artifacts {
@@ -271,6 +206,11 @@ def customizePom(pom) {
     }
 }
 
+signing {
+    sign publishing.publications.mavenCentralRelease
+}
+tasks.withType(Sign)*.enabled = mavenCentralPublishingEnabled.toBoolean()
+
 gradle.taskGraph.whenReady { taskGraph ->
 	if (project.rootProject.file('local.properties').exists()) {
         Properties properties = new Properties()
@@ -285,11 +225,5 @@ gradle.taskGraph.whenReady { taskGraph ->
 model {
     tasks.generatePomFileForMavenCentralReleasePublication {
         destination = file("$buildDir/generated-pom.xml")
-    }
-    tasks.publishMavenCentralReleasePublicationToMavenLocal {
-        dependsOn project.tasks.signArchives
-    }
-    tasks.publishMavenCentralReleasePublicationToMaven2Repository {
-        dependsOn project.tasks.signArchives
     }
 }
