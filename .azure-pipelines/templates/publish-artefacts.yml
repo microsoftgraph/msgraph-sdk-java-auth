@@ -1,0 +1,19 @@
+steps:
+- task: CopyFiles@2
+  inputs:
+    SourceFolder: '$(System.DefaultWorkingDirectory)'
+    Contents: |
+      **/libs/*
+      build.gradle
+      gradlew
+      gradlew.bat
+      settings.gradle
+      gradle.properties
+      **/gradle/wrapper/*
+      scripts/**
+    TargetFolder: '$(Build.ArtifactStagingDirectory)/'
+
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish Artifact: drop'
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
