@@ -15,8 +15,8 @@ dependencies {
     testImplementation 'junit:junit:4.13'
     testImplementation 'org.mockito:mockito-core:3.7.7'
     implementation 'org.apache.oltu.oauth2:org.apache.oltu.oauth2.client:1.0.2'
-    implementation 'com.microsoft.graph:microsoft-graph-core:1.+'
-    implementation 'com.microsoft.graph:microsoft-graph:2.+'
+    implementation 'com.microsoft.graph:microsoft-graph-core:1.0.8'
+    implementation 'com.microsoft.graph:microsoft-graph:2.7.1'
 }
 
 def pomConfig = {
@@ -95,11 +95,6 @@ publishing {
         	pom.withXml {
         		def pomFile = file("${project.buildDir}/generated-pom.xml")
         		writeTo(pomFile)
-        		def pomAscFile = signing.sign(pomFile).signatureFiles[0]
-        		artifact(pomAscFile) {
-                    classifier = null
-                    extension = 'pom.asc'
-                }
         	}
         	artifact(sourceJar) {
         		classifier = 'sources'
@@ -157,11 +152,6 @@ artifacts {
 	archives sourceJar
 	archives javadocJar
 }
-
-signing {
-	sign configurations.archives
-}
-tasks.withType(Sign)*.enabled = mavenCentralPublishingEnabled.toBoolean()
 
 def customizePom(pom) {
     pom.withXml {
