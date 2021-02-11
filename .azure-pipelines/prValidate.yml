@@ -3,43 +3,32 @@
 #Build and test Java Core to make sure a valid pull request is being made
 #Validate that the versions dont conflict with those online in case a pull request is made to main or master
 
-pr: 
-    branches:
-        include:
-            - master
-            - main
-            - dev
-    paths:
-        exclude:
-            - .azure-pipelines
-            - .gradle/wrapper
-            - .gitignore
-            - CONTRIBUTING.md
-            - LICENSE
-            - THIRD PARTY NOTICES
-            - gradlew
-            - gradlew.bat
-            - readme.md
-            - scripts/*
+pr:
+  branches:
+    include:
+      - dev
+      - main
+      - master
+  paths:
+    exclude:
+      - .gradle/wrapper
+      - .gitignore
+      - CONTRIBUTING.md
+      - LICENSE
+      - THIRD PARTY NOTICES
+      - gradlew
+      - gradlew.bat
+      - readme.md
+      - scripts/*
 
 trigger: none
 
-variables:
-    PACKAGE_NAME: 'microsoft-graph-auth'
-    PROPERTIES_PATH: '.\gradle.properties'
-
 pool:
-    vmImage: windows-latest
+  vmImage: windows-latest
 
-steps: 
-- checkout: self
-  clean: true
-  fetchDepth: 1
-
-- task: securedevelopmentteam.vss-secure-development-tools.build-task-credscan.CredScan@2
-  displayName: 'Run CredScan'
-  inputs:
-    debugMode: false
+steps:
+- template: templates/checkout-and-credscan.yml
+- template: templates/install-java.yml
 
 - task: PowerShell@2
   condition: and(failed(), eq(variables['Build.SourceBranchName'], 'dev'))
@@ -48,21 +37,5 @@ steps:
     pwsh: true
     arguments: '-packageName "$(PACKAGE_NAME)" -propertiesPath "$(PROPERTIES_PATH)"'
 
-- task: Gradle@2
-  inputs:
-    gradleWrapperFile: 'gradlew'
-    tasks: 'build'
-    publishJUnitResults: true
-    testResultsFiles: '**/TEST-*.xml'
-    javaHomeOption: 'JDKVersion'
-    sonarQubeRunAnalysis: false
-
-- task: YodLabs.O365PostMessage.O365PostMessageBuild.O365PostMessageBuild@0
-  displayName: 'Graph Client Tooling pipeline fail notification'
-  inputs:
-    addressType: serviceEndpoint
-    serviceEndpointName: 'microsoftgraph pipeline status'
-    title: '$(Build.DefinitionName) failure notification'
-    text: 'This pipeline has failed. View the build details for further information. This is a blocking failure. '
-  condition: and(failed(), ne(variables['Build.Reason'], 'Manual'))
-  enabled: true
+- template: templates/build.yml
+- template: templates/alert-failure.yml
